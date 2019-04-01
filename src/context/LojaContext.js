@@ -1,40 +1,47 @@
-import React, { useState } from 'react';
+import React, { Component } from 'react';
+import BancoDeDados from '../bd/BancoDeDados';
 
 export const LojaContext = React.createContext();
 
-export function LojaProvider(props) {
-  const [produtosBackend, setProdutosBackend] = useState([]);
-  const [produtos, setProdutos] = useState([]);
-  const [carrinho, setCarrinho] = useState([]);
-  const [carrinhoVisivel, setCarrinhoVisivel] = useState(false);
+export class  LojaProvider extends Component {
+  state = {
+    appName: "Paraíbazon Store",
+    produtos: BancoDeDados.getProdutos(),
+    carrinho: JSON.parse(localStorage.getItem('carrinho')) || [],
+    carrinhoVisivel: false
+  };  
 
-  const buscar = (termo) => {
-    setProdutos(produtosBackend.filter((p) => {
-      return p.nome.toLowerCase().includes(termo.toLowerCase());
-    }));
-  };
+  render() {
 
-  const comprar = (produto) => {
-    setCarrinho([...carrinho, produto]);
-  };
-
-  const remover = (indice) => {
-    setCarrinho([...carrinho.slice(0, indice), ...carrinho.slice(indice + 1)]);
-  };
-
-  return (
+    return( 
     <LojaContext.Provider value={{
-        state: { produtos, carrinho, carrinhoVisivel},
-        setProdutosBackend: (produtos) => {
-          setProdutosBackend(produtos);
-          setProdutos(produtos);
-        },
-        buscar,
-        comprar,
-        remover,
-        setCarrinhoVisivel
+      state: this.state,
+      buscar: (termo) => {
+        let produtos = BancoDeDados.getProdutos().filter((p) => {
+          return p.nome.toLowerCase().includes(termo.toLowerCase());
+        });
+        this.setState({produtos});
+      },
+      comprar: (produtoId) => {            
+        let carrinho = [...this.state.carrinho, this.state.produtos.find(item => item.id === produtoId)];
+        this.setState({carrinho});
+        localStorage.setItem('carrinho', JSON.stringify(carrinho))
+      },
+      remover: (indice) => {
+        let carrinho = [...this.state.carrinho];
+        carrinho.splice(indice, 1);
+        this.setState({carrinho});
+        localStorage.setItem('carrinho', JSON.stringify(carrinho))
+      },
+      mostrarCarrinho: () => {
+        this.setState({carrinhoVisivel: true});
+      },
+      esconderCarrinho: () => {
+        this.setState({carrinhoVisivel: false});
+      }
     }}>
-      {props.children}
+    {this.props.children}
     </LojaContext.Provider>
-  );
+    );
+  }
 }

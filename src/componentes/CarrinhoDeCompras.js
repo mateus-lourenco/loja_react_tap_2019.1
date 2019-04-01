@@ -1,17 +1,36 @@
-import React, { useContext } from 'react';
+import React, { Component } from 'react';
 import {LojaContext} from '../context/LojaContext';
 import ItemCarrinho from './ItemCarrinho';
 import FormataMoeda from './FormataMoeda';
 import Modal from 'react-bootstrap/Modal';
 import Table from 'react-bootstrap/Table';
 
-function CarrinhoDeCompras() {
-  let { state: {carrinho, carrinhoVisivel}, setCarrinhoVisivel } = useContext(LojaContext);
+class CarrinhoDeCompras extends Component {
 
-  const renderProduto = (p, i) => (<ItemCarrinho produto={p} index={i} key={i} />);
-
-  const renderCabecalho = () => {
+  render(){
     return (
+      <Modal show={this.context.state.mostrarCarrinho} centered onHide={this.context.state.esconderCarrinho}>
+        <Modal.Header closeButton>
+          <Modal.Title>Carrinho de Compras</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Table striped bordered hover>
+            <Cabecalho/>
+            <tbody>
+              {this.context.state.carrinho.map(this.renderProduto)}
+            </tbody>
+            <Rodape carrinho = {this.context.state.carrinho}/>
+          </Table>
+        </Modal.Body>
+      </Modal>
+      );
+    }
+      renderProduto = (p, i) => (<ItemCarrinho produto={p} index={i} key={i} />);
+  }
+    
+
+    function Cabecalho (props) {
+      return (
       <thead>
         <tr>
           <th>&nbsp;</th>
@@ -21,10 +40,10 @@ function CarrinhoDeCompras() {
         </tr>
       </thead>
     );
-  };
-
-  const renderRodape = () => {
-    let total = carrinho.reduce((acc, p) => acc + p.preco, 0);
+  }
+  
+  function Rodape(props) {
+    let total = props.carrinho.reduce((acc, p) => acc + p.preco, 0);
   
     return (
       <tfoot>
@@ -36,24 +55,8 @@ function CarrinhoDeCompras() {
         </tr>
       </tfoot>
     );
-  };
+  }
 
-  return (
-    <Modal show={carrinhoVisivel} centered onHide={() => setCarrinhoVisivel(false)}>
-      <Modal.Header closeButton>
-        <Modal.Title>Carrinho de Compras</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Table striped bordered hover>
-          {renderCabecalho()}
-          <tbody>
-            {carrinho.map(renderProduto)}
-          </tbody>
-          {renderRodape()}
-        </Table>
-      </Modal.Body>
-    </Modal>
-  );
-}
+CarrinhoDeCompras.contextType = LojaContext;
 
 export default CarrinhoDeCompras;
